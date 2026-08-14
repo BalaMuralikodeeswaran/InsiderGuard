@@ -3,8 +3,9 @@ import { NavLink, useNavigate, Link } from "react-router-dom";
 import {
   LayoutDashboard, Upload, Users, ShieldAlert, Search, FileText, BarChart3,
   Bell, Settings, UserCog, LogOut, ShieldCheck, Activity, Info, HelpCircle,
-  ChevronRight, X,
+  ChevronRight, X, Siren,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
 import { cn } from "../lib/utils";
@@ -35,6 +36,8 @@ export default function Layout({ children }) {
   const [unread, setUnread] = useState(0);
   const [q, setQ] = useState("");
   const [results, setResults] = useState(null);
+  const [liveAlerts, setLiveAlerts] = useState([]);
+  const sinceRef = useRef(null);
   const searchRef = useRef(null);
 
   const loadUnread = async () => {
@@ -48,6 +51,27 @@ export default function Layout({ children }) {
     loadUnread();
     const t = setInterval(loadUnread, 20000);
     return () => clearInterval(t);
+  }, []);
+
+  // ---- Live Critical Alert Stream ----
+  useEffect(() => {
+    let active = true;
+    const poll = async () => {
+      try {
+        const { data } = await api.get(`/alerts/stream${sinceRef.current ? `?since=${encodeURIComponent(sinceRef.current)}` : ""}`);
+        if (!active) return;
+        if (sinceRef.current && data.new_critical?.length) {
+          data.new_critical.forEach((n) => {
+            toast.error(n.message, { icon: "🚨", duration: 8000, description: "Critical insider-threat alert" });
+          });
+          setLiveAlerts((prev) => [...data.new_critical, ...prev].slice(0, 5));
+        }
+        sinceRef.current = data.server_time; // advance watermark
+      } catch {}
+    };
+    poll(); // establishes initial watermark (no toast on first run)
+    const t = setInterval(poll, 8000);
+    return () => { active = false; clearInterval(t); };
   }, []);
 
   useEffect(() => {
@@ -185,7 +209,22 @@ export default function Layout({ children }) {
           ))}
         </div>
 
-        <main className="flex-1 grid-noise p-4 lg:p-6">{children}</main>
+        <main className="flex-1 grid-noise p-4 lg:p-6">
+          {liveAlerts.length > 0 && (
+            <div data-testid="critical-alert-banner" className="alert-pulse mb-4 flex items-start gap-3 border border-red-500/40 border-l-4 border-l-red-500 bg-red-500/10 p-4">
+              <Siren size={20} className="mt-0.5 shrink-0 animate-pulse text-red-400" />
+              <div className="flex-1">
+                <p className="font-heading text-sm font-bold text-red-300">Live Critical Alert{liveAlerts.length > 1 ? "s" : ""} — {liveAlerts.length} new</p>
+                <p className="mt-0.5 text-sm text-red-200/90">{liveAlerts[0].message}</p>
+                <Link to="/alerts" onClick={() => setLiveAlerts([])} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-red-300 underline-offset-2 hover:underline">
+                  Investigate now <ChevronRight size={13} />
+                </Link>
+              </div>
+              <button data-testid="dismiss-alert-banner" onClick={() => setLiveAlerts([])} className="text-red-400/70 hover:text-red-300"><X size={18} /></button>
+            </div>
+          )}
+          {children}
+        </main>
       </div>
     </div>
   );

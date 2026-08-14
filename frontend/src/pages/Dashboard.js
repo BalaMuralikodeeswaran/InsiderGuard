@@ -116,6 +116,40 @@ export default function Dashboard() {
         </ChartCard>
       </div>
 
+      {/* Monthly security incident trend */}
+      <ChartCard testid="chart-monthly-incidents" title="Monthly Security Incidents" subtitle="Detected incidents by severity over the last 6 months">
+        <ResponsiveContainer width="100%" height={260}>
+          <AreaChart data={charts.monthly_incidents}>
+            <defs>
+              <linearGradient id="gm-crit" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ef4444" stopOpacity={0.5} />
+                <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="gm-high" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="gm-med" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#eab308" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#eab308" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1f1f23" vertical={false} />
+            <XAxis dataKey="month" {...axisProps} />
+            <YAxis {...axisProps} />
+            <Tooltip {...tt} />
+            <Area type="monotone" dataKey="medium" stackId="1" stroke="#eab308" strokeWidth={2} fill="url(#gm-med)" />
+            <Area type="monotone" dataKey="high" stackId="1" stroke="#f59e0b" strokeWidth={2} fill="url(#gm-high)" />
+            <Area type="monotone" dataKey="critical" stackId="1" stroke="#ef4444" strokeWidth={2} fill="url(#gm-crit)" />
+          </AreaChart>
+        </ResponsiveContainer>
+        <div className="flex justify-center gap-4 text-xs text-zinc-400">
+          <span className="flex items-center gap-1"><span className="h-2 w-2 bg-[#ef4444]" />Critical</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 bg-[#f59e0b]" />High</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 bg-[#eab308]" />Medium</span>
+        </div>
+      </ChartCard>
+
       {/* Charts row 2 */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <ChartCard testid="chart-daily-suspicious" title="Daily Suspicious Activity" subtitle="Flagged sessions per day (14d)">

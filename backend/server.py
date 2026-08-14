@@ -22,7 +22,7 @@ import pandas as pd
 
 import auth as authlib
 from ml_engine import run_analysis, risk_level, FEATURE_COLUMNS
-from seed import generate_dataset, build_csv_template
+from seed import generate_dataset, build_csv_template, generate_monthly_incidents
 from pdf_report import generate_incident_report
 
 mongo_url = os.environ['MONGO_URL']
@@ -264,6 +264,10 @@ async def startup():
         await create_notification("upload", f"Simulated dataset loaded: {len(employees)} employees, {len(logs)} activity logs", "info")
         logger.info("Seed complete.")
 
+    # seed historical monthly incidents (escalating trend)
+    if await db.security_incidents.count_documents({}) == 0:
+        await db.security_incidents.insert_many(generate_monthly_incidents())
+
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -452,7 +456,22 @@ async def dashboard_charts(user=Depends(current_user)):
     download_trend = [{"date": d[5:], "downloads": download_daily.get(d, 0)} for d in days_sorted]
     email_trend = [{"date": d[5:], "external": email_daily.get(d, 0)} for d in days_sorted]
 
-    # monthly incidents (last 6 months from alerts)
+    # monthly security incidents (historical + live current-month from employee risk tiers)
+    monthly = await db.security_incidents.find({}, {"_id": 0}).sort("sort", 1).to_list(24)
+    if monthly:
+        live = {"Critical": 0, "High": 0, "Medium": 0}
+        for e in employees:
+            lvl = e.get("risk_level")
+            if lvl in live:
+                live[lvl] += 1
+        last = monthly[-1]
+        last["critical"] = max(last.get("critical", 0), live["Critical"])
+        last["high"] = max(last.get("high", 0), live["High"])
+        last["medium"] = max(last.get("medium", 0), live["Medium"])
+        last["total"] = last["critical"] + last["high"] + last["medium"]
+    monthly_incidents = [{"month": m["month"], "critical": m["critical"], "high": m["high"],
+                          "medium": m["medium"], "total": m["total"]} for m in monthly]
+
     return {
         "risk_distribution": risk_distribution,
         "department_risk": dept_risk,
@@ -461,6 +480,7 @@ async def dashboard_charts(user=Depends(current_user)):
         "usb_trend": usb_trend,
         "download_trend": download_trend,
         "email_trend": email_trend,
+        "monthly_incidents": monthly_incidents,
     }
 
 
@@ -663,6 +683,17 @@ async def list_alerts(user=Depends(current_user), severity: str = "", status: st
     order = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
     alerts.sort(key=lambda a: order.get(a.get("severity"), 4))
     return alerts
+
+
+@api.get("/alerts/stream")
+async def alert_stream(since: str = "", user=Depends(current_user)):
+    """Return critical alert notifications created after `since` (ISO ts) for the live feed."""
+    q = {"severity": "critical", "type": "alert"}
+    if since:
+        q["created_at"] = {"$gt": since}
+    notes = await db.notifications.find(q, {"_id": 0}).sort("created_at", -1).to_list(20)
+    now = datetime.now(timezone.utc).isoformat()
+    return {"new_critical": notes, "server_time": now}
 
 
 @api.patch("/alerts/{alert_id}")

@@ -163,3 +163,32 @@ def build_csv_template():
     sample = ("EMP-2001,Finance,2026-06-01T02:15:00,2026-06-01T11:40:00,Remote - VPN,LAP-231,"
               "88.120.34.9,1250,45,1,47,8,3,1,Cloud Storage,1,2026-06-01T02:15:00")
     return header + "\n" + sample + "\n"
+
+
+def generate_monthly_incidents(months=6):
+    """Historical SOC incident aggregates showing an escalating trend."""
+    now = datetime.now(timezone.utc)
+    MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    out = []
+    base = 3
+    for i in range(months - 1, -1, -1):
+        m = now.month - i
+        y = now.year
+        while m <= 0:
+            m += 12
+            y -= 1
+        step = (months - 1 - i)
+        critical = base + step * 2 + random.randint(0, 2)
+        high = base + step * 3 + random.randint(1, 4)
+        medium = base + step * 4 + random.randint(2, 6)
+        out.append({
+            "month": f"{MONTHS[m - 1]} {str(y)[2:]}",
+            "sort": y * 100 + m,
+            "critical": critical,
+            "high": high,
+            "medium": medium,
+            "total": critical + high + medium,
+        })
+    out.sort(key=lambda x: x["sort"])
+    return out
+
