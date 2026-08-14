@@ -1,0 +1,50 @@
+{
+  "summary": "InsiderGuard first-pass test. Backend 39/39 pytest passing across auth, dashboard, employees, CSV upload + real ML re-run (Isolation Forest + LOF), alerts, investigations, reports (JSON + valid PDF starting with %PDF), analytics (both models with accuracy/precision/recall/f1/confusion_matrix/roc/feature_importance/selected_model), notifications, user management (admin-only), settings (admin-only), global search and RBAC 403 for analyst. Frontend admin+analyst end-to-end flows verified via Playwright: login (both accounts), navigation across every sidebar page, dashboard populated (50 employees / 1102 logs / 8 critical alerts / avg risk 30.7), employee search + drill-down, analytics shows Isolation Forest + LOF, admin-only nav hidden for analyst and /users route redirects analyst to /dashboard. No AI/LLM/audio/image-video features in scope — the ML is local scikit-learn, no ai-testing-* skill loaded beyond the mandatory ai-testing-core baseline.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/auth/login", "issue": "Brute-force lockout resets locked_until on every failed attempt after count>=5 (extends the 15-minute window on each new failure). Also identifier is IP:email — behind the preview ingress all users share the ingress IP, so one attacker fuzzing many emails can never lock a real account. Consider counting per-email and using a stable X-Forwarded-For."},
+      {"endpoint": "CORS middleware", "issue": "CORS_ORIGINS=\"*\" combined with allow_credentials=True is invalid for cross-origin browsers (spec requires explicit origins with credentials). Works today only because frontend and backend share origin via ingress; will break if a different origin ever calls the API."},
+      {"endpoint": "PATCH /api/investigations/{id}", "issue": "When body has no fields, ops[\"$push\"] is popped only if empty — but the endpoint still runs update_one even when nothing changed and returns 200. Consider validating at least one field like /alerts does."},
+      {"endpoint": "GET /api/analytics/model", "issue": "Ground truth for evaluation is (iso ∨ lof consensus) — using models' own predictions as their own labels inflates accuracy and precision toward 1.0. Metrics are structurally correct but semantically self-referential; document this or use held-out labels from seed's _is_insider flag."},
+      {"endpoint": "PATCH /api/users/{user_id}", "issue": "ObjectId(user_id) is not wrapped in try/except — an invalid id would 500 instead of 400/404 (confirmed via test scaffolding)."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Dashboard", "issues": ["'HIGH RISK' stat card shows 0 while 'CRITICAL RISK' shows 8. Seed generator produces Critical-tier insiders (score ≥81) but no High-tier (61-80), so the High card is always empty on a fresh seed. Consider merging the High+Critical bucket on the card or adjusting the seed to spread scores into 61-80 band."]},
+      {"screen": "Dashboard stat cards", "issues": ["Both 'CRITICAL ALERTS' and 'CRITICAL RISK' read 8 — labels are close enough to look duplicated at a glance; consider renaming one (e.g. 'Critical Employees')."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/backend/tests/conftest.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Consider fixing brute-force lockout logic (per-email counter, stable client IP, non-sliding window).",
+    "Consider replacing CORS_ORIGINS='*' with explicit origins now that allow_credentials=True.",
+    "Consider wrapping ObjectId() calls in try/except across /users patch/delete to return 400 instead of 500 on malformed ids.",
+    "Consider adjusting seed distribution or dashboard labels so the High-risk band is not always empty.",
+    "Consider using seed._is_insider ground truth for /analytics/model evaluation instead of self-consensus."
+  ],
+  "critical_code_review_comments": [
+    "auth cookie is set with samesite=none + secure=true — correct for cross-site, but requires HTTPS (works on preview URL).",
+    "server.py is 996 lines — approaching the 700-line guideline; could be split into routers/auth.py, routers/employees.py, etc.",
+    "perform_analysis reads all activity_logs into memory (to_list(200000)) — fine for the seeded 1.1k rows but will not scale; add pagination or aggregation.",
+    "ML engine correctly excludes MongoDB _id from all list responses and returns plain-JSON friendly numpy scalars via _clean.",
+    "Frontend uses REACT_APP_BACKEND_URL from env, withCredentials true, and every interactive element has data-testid — testability is solid."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py",
+    "/app/backend/tests/conftest.py"
+  ],
+  "success_rate": {"backend": "100% (39/39)", "frontend": "100% (all key flows: admin + analyst login, dashboard, employees list/detail, alerts, investigations, reports, analytics, user management, settings, global search, logout, RBAC redirect)"},
+  "test_credentials": "Admin admin@insiderguard.io / Admin@123 — Analyst analyst@insiderguard.io / Analyst@123 (both verified via /api/auth/login → 200 with httpOnly access_token + refresh_token cookies).",
+  "seed_data_creation": "Backend auto-seeded on first startup: 48 employees + ~1102 activity logs. During upload test, added 2 EMP-TESTUPLOAD-* rows and re-ran analysis (now 50 employees). Tests created 1 TEST_user_* account (deleted at end) and 1 investigation on an employee (marked false_positive + Closed). Alerts had test notes appended.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "backend_test.py at /app/backend/tests/backend_test.py is fully green and can be re-run with `python -m pytest backend/tests/backend_test.py -v` from /app. It uses REACT_APP_BACKEND_URL loaded from frontend/.env via conftest.py. Sidebar nav testids follow the pattern nav-<lowercased-label-with-dashes> (e.g. nav-employees, nav-user-management, nav-settings) — the 'nav-users' testid mentioned in the review request does not exist; use 'nav-user-management'. Seeded dataset creates Critical/Medium/Low but NOT High-tier employees, so any assertion requiring a High-tier employee will always fail on a fresh seed — this is by design of the seed generator, not a bug."
+}

@@ -1,54 +1,59 @@
-import { useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
-import { HOME } from "@/constants/testIds";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "sonner";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Layout from "./components/Layout";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import UploadLogs from "./pages/UploadLogs";
+import EmployeeList from "./pages/EmployeeList";
+import EmployeeDetails from "./pages/EmployeeDetails";
+import Alerts from "./pages/Alerts";
+import Investigations from "./pages/Investigations";
+import Reports from "./pages/Reports";
+import Analytics from "./pages/Analytics";
+import Notifications from "./pages/Notifications";
+import UserManagement from "./pages/UserManagement";
+import SettingsPage from "./pages/Settings";
+import Profile from "./pages/Profile";
+import Help from "./pages/Help";
+import About from "./pages/About";
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          data-testid={HOME.emergentLink}
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+const P = ({ children, adminOnly }) => (
+  <ProtectedRoute adminOnly={adminOnly}>
+    <Layout>{children}</Layout>
+  </ProtectedRoute>
+);
 
 function App() {
   return (
     <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <Toaster theme="dark" position="top-right" richColors />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<P><Dashboard /></P>} />
+            <Route path="/upload" element={<P><UploadLogs /></P>} />
+            <Route path="/employees" element={<P><EmployeeList /></P>} />
+            <Route path="/employees/:id" element={<P><EmployeeDetails /></P>} />
+            <Route path="/alerts" element={<P><Alerts /></P>} />
+            <Route path="/investigations" element={<P><Investigations /></P>} />
+            <Route path="/reports" element={<P><Reports /></P>} />
+            <Route path="/analytics" element={<P><Analytics /></P>} />
+            <Route path="/notifications" element={<P><Notifications /></P>} />
+            <Route path="/users" element={<P adminOnly><UserManagement /></P>} />
+            <Route path="/settings" element={<P adminOnly><SettingsPage /></P>} />
+            <Route path="/profile" element={<P><Profile /></P>} />
+            <Route path="/help" element={<P><Help /></P>} />
+            <Route path="/about" element={<P><About /></P>} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </div>
   );
 }
