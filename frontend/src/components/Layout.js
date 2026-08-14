@@ -3,7 +3,7 @@ import { NavLink, useNavigate, Link } from "react-router-dom";
 import {
   LayoutDashboard, Upload, Users, ShieldAlert, Search, FileText, BarChart3,
   Bell, Settings, UserCog, LogOut, ShieldCheck, Activity, Info, HelpCircle,
-  ChevronRight, X, Siren,
+  ChevronRight, X, Siren, CheckCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -39,6 +39,35 @@ export default function Layout({ children }) {
   const [liveAlerts, setLiveAlerts] = useState([]);
   const sinceRef = useRef(null);
   const searchRef = useRef(null);
+  const audioCtxRef = useRef(null);
+
+  // ---- Siren chime (Web Audio API, no asset needed) ----
+  const playSiren = () => {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") ctx.resume();
+      const now = ctx.currentTime;
+      const gain = ctx.createGain();
+      gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.14, now + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+      const osc = ctx.createOscillator();
+      osc.type = "sawtooth";
+      osc.connect(gain);
+      // two-tone siren sweep
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.linearRampToValueAtTime(1320, now + 0.22);
+      osc.frequency.linearRampToValueAtTime(880, now + 0.44);
+      osc.frequency.linearRampToValueAtTime(1320, now + 0.66);
+      osc.frequency.linearRampToValueAtTime(880, now + 0.88);
+      osc.start(now);
+      osc.stop(now + 0.9);
+    } catch {}
+  };
 
   const loadUnread = async () => {
     try {
@@ -61,6 +90,7 @@ export default function Layout({ children }) {
         const { data } = await api.get(`/alerts/stream${sinceRef.current ? `?since=${encodeURIComponent(sinceRef.current)}` : ""}`);
         if (!active) return;
         if (sinceRef.current && data.new_critical?.length) {
+          playSiren();
           data.new_critical.forEach((n) => {
             toast.error(n.message, { icon: "🚨", duration: 8000, description: "Critical insider-threat alert" });
           });
@@ -220,7 +250,11 @@ export default function Layout({ children }) {
                   Investigate now <ChevronRight size={13} />
                 </Link>
               </div>
-              <button data-testid="dismiss-alert-banner" onClick={() => setLiveAlerts([])} className="text-red-400/70 hover:text-red-300"><X size={18} /></button>
+              <button data-testid="clear-all-alerts-btn" onClick={() => { setLiveAlerts([]); toast.dismiss(); }}
+                className="flex shrink-0 items-center gap-1.5 border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 transition-colors hover:bg-red-500/20">
+                <CheckCheck size={14} /> Clear All
+              </button>
+              <button data-testid="dismiss-alert-banner" onClick={() => setLiveAlerts([])} className="shrink-0 text-red-400/70 hover:text-red-300"><X size={18} /></button>
             </div>
           )}
           {children}
