@@ -1,0 +1,108 @@
+{
+  "theme": {
+    "mode": "dark",
+    "rationale": "Security Operations Center (SOC) environments require dark mode to reduce eye strain during extended monitoring. Deep grays with high-contrast semantic colors (Red/Amber/Green) ensure immediate threat recognition."
+  },
+  "typography": {
+    "headings": "Chivo",
+    "body": "Inter",
+    "mono": "JetBrains Mono",
+    "strategy": "Chivo provides an authoritative, technical feel for headings. Inter offers maximum legibility for dense data. JetBrains Mono is critical for logs, IPs, risk scores, and metrics.",
+    "hierarchy": {
+      "h1": "text-3xl sm:text-4xl tracking-tight font-black",
+      "h2": "text-2xl sm:text-3xl tracking-tight font-bold",
+      "h3": "text-xl font-bold",
+      "body": "text-sm text-zinc-300",
+      "labels": "text-xs font-mono uppercase tracking-[0.2em] text-zinc-400"
+    }
+  },
+  "colors": {
+    "archetype": "Swiss & High-Contrast (Adapted for SOC Dark Mode)",
+    "palette": {
+      "background": "#09090b",
+      "surface": "#18181b",
+      "surface_elevated": "#27272a",
+      "border": "#27272a",
+      "primary_accent": "#3b82f6",
+      "text_primary": "#f4f4f5",
+      "text_secondary": "#a1a1aa",
+      "critical_red": "#ef4444",
+      "high_amber": "#f59e0b",
+      "medium_yellow": "#eab308",
+      "low_green": "#22c55e"
+    },
+    "rules": "Never use pure black. Use zinc scale. Reserve red exclusively for critical alerts and high risk scores. Apply border-collapse and subtle borders."
+  },
+  "visual_enhancers": {
+    "surfaces": "Grid Borders (The 'Technical' Look). Use border-collapse for dashboards. Items have subtle borders on right/bottom. Flat backgrounds, no shadows.",
+    "glassmorphism": "Use sparingly. For sticky headers, use backdrop-blur-xl bg-zinc-950/70 border-b border-zinc-800.",
+    "motion": "Minimalistic. Hover states should slightly lighten backgrounds. Important alerts can use a subtle pulse animation on the left border."
+  },
+  "grids_layouts": {
+    "dashboard_mode": "High Density Grid (Mode B)",
+    "spacing_system": "Tight for dashboards (p-4, gap-4). Generous for settings (p-8).",
+    "dashboard_grid": "grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-4. Top KPI metrics span 2 or 3 cols. Main charts span 6-8 cols.",
+    "alignment": "Left-align dense tabular data. Right-align numerical metrics and risk scores."
+  },
+  "components": {
+    "shadcn_primitives": ["Card", "Table", "Badge", "Button", "Input", "DropdownMenu", "Tabs", "Dialog", "Select", "Progress"],
+    "modifications": "Remove rounded-xl from Shadcn Cards, change to rounded-none or rounded-sm. Use sharp edges for a technical feel. Use Badge components with varying opacities for risk levels (e.g., bg-red-500/10 text-red-500 border border-red-500/20).",
+    "charts": "Use Recharts. Use dark-mode friendly tooltips. No grids, just X/Y axes for cleaner look. Use primary_accent, critical_red, high_amber for chart lines/bars.",
+    "toast": "Use Sonner for toast notifications, located at /app/frontend/src/components/ui/sonner.js",
+    "icons": "Use lucide-react. Standardize size to 16px for inline data, 24px for metrics."
+  },
+  "media": {
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1589431024675-c56516cb4398?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTN8MHwxfHNlYXJjaHwyfHxjeWJlcnNlY3VyaXR5JTIwc2VydmVyJTIwcm9vbSUyMGRhcmslMjBuZW9ufGVufDB8fHx8MTc4MTk2ODEyNnww&ixlib=rb-4.1.0&q=85",
+        "category": "Login Background",
+        "description": "Dark neon server room to establish cybersecurity operations context on the authentication screen."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+        "category": "Employee Avatar",
+        "description": "Professional employee headshot for user lists and details."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1699899657680-421c2c2d5064",
+        "category": "Employee Avatar",
+        "description": "Professional employee headshot for user lists and details."
+      },
+      {
+        "url": "https://images.pexels.com/photos/29852895/pexels-photo-29852895.jpeg",
+        "category": "Employee Avatar",
+        "description": "Professional employee headshot for user lists and details."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1560250097-0b93528c311a",
+        "category": "Employee Avatar",
+        "description": "Professional employee headshot for user lists and details."
+      }
+    ]
+  },
+  "accessibility": {
+    "contrast": "Ensure text meets APCA standards. Use text-zinc-100 for primary text, text-zinc-400 for secondary.",
+    "focus_states": "focus:ring-2 focus:ring-blue-500 focus:outline-none.",
+    "testing": "All interactive elements MUST have data-testid attributes (e.g., data-testid='upload-logs-btn')."
+  },
+  "instructions_to_main_agent": [
+    "Prioritize a true dark gray (zinc) palette, never pure black (#000000).",
+    "Apply The 'Technical' Look: Use grid borders (border-r border-b border-zinc-800) for data-heavy sections instead of standalone floating cards.",
+    "Risk levels must be color-coded strictly: Critical=Red, High=Amber, Medium=Yellow, Low=Green. Use these colors for badges, chart elements, and progress bars.",
+    "Use JetBrains Mono for all numeric data (IP addresses, Risk Scores, Timestamps).",
+    "Do NOT center align the app container in App.css.",
+    "Implement real-time-feeling micro-animations (e.g., pulse on critical alerts, smooth width transitions on progress bars).",
+    "Use Recharts for all visual data. Customize axes to be subtle (zinc-800) and use custom tooltips matching the dark theme.",
+    "Create a modular SOC Dashboard layout using CSS Grid where widgets stretch to fill container heights.",
+    "Ensure the Sidebar Navigation is sticky and uses a distinct surface color (zinc-900) from the main content (zinc-950).",
+    "Ensure file extensions are .js (not .tsx) as per the project configuration."
+  ],
+  "universal_guidelines": [
+    "Create depth through layered design elements with z-index hierarchy, but prefer elevation via lightness in dark mode.",
+    "Every interaction needs micro-animations - hover states, transitions. Static = dead.",
+    "Use modern button styles (sharp or slightly rounded, not pill for this technical app) with interaction animations.",
+    "Never use AI assistant Emoji characters. Use Lucide icons.",
+    "All interactive elements MUST include a data-testid attribute in kebab-case.",
+    "DO NOT use complete transparent background in header, overlays, any surface that has content under it. Example: Dropdown with transparent background."
+  ]
+}

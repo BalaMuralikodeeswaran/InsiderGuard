@@ -1,0 +1,253 @@
+@import url('https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --background: 228 80% 8%;
+    --foreground: 220 14% 91%;
+
+    --card: 226 63% 10%;
+    --card-foreground: 220 14% 91%;
+
+    --popover: 226 63% 10%;
+    --popover-foreground: 220 14% 91%;
+
+    --primary: 233 100% 74%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 226 55% 14%;
+    --secondary-foreground: 220 14% 91%;
+
+    --muted: 225 48% 20%;
+    --muted-foreground: 220 10% 65%;
+
+    --accent: 226 55% 14%;
+    --accent-foreground: 220 14% 91%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 224 49% 20%;
+    --input: 224 49% 20%;
+    --ring: 233 100% 74%;
+
+    --radius: 0.25rem;
+}
+
+* {
+    border-color: hsl(var(--border));
+}
+
+body {
+    margin: 0;
+    background-color: #040A23;
+    color: #E5E7EB;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, .font-heading {
+    font-family: 'Chivo', sans-serif;
+}
+
+.font-mono, code {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #040A23;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #18244A;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #7C8CFF;
+}
+
+::selection {
+    background: #7C8CFF;
+    color: #ffffff;
+}
+
+@keyframes pulse-border {
+    0%, 100% { border-left-color: #ef4444; }
+    50% { border-left-color: rgba(239, 68, 68, 0.3); }
+}
+.alert-pulse { animation: pulse-border 2s ease-in-out infinite; }
+
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fade-up 0.4s ease-out both; }
+
+.grid-noise {
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+    background-size: 32px 32px;
+}
+
+
+/* ========================================
+   CaughtIn4K Toast Notifications
+   ======================================== */
+
+/* SUCCESS - Green */
+[data-sonner-toast][data-type="success"] {
+    background: #052e16 !important;
+    border: 1px solid #22c55e !important;
+    color: #E5E7EB !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-icon] {
+    color: #22c55e !important;
+}
+
+
+/* ERROR - Red */
+[data-sonner-toast][data-type="error"] {
+    background: #2a0707 !important;
+    border: 1px solid #ef4444 !important;
+    color: #E5E7EB !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-icon] {
+    color: #ef4444 !important;
+}
+
+
+/* WARNING - Orange */
+[data-sonner-toast][data-type="warning"] {
+    background: #301507 !important;
+    border: 1px solid #f97316 !important;
+    color: #E5E7EB !important;
+}
+
+[data-sonner-toast][data-type="warning"] [data-icon] {
+    color: #f97316 !important;
+}
+
+
+/* INFO - Blue */
+[data-sonner-toast][data-type="info"] {
+    background: #071b30 !important;
+    border: 1px solid #3b82f6 !important;
+    color: #E5E7EB !important;
+}
+
+[data-sonner-toast][data-type="info"] [data-icon] {
+    color: #3b82f6 !important;
+}
+
+
+/* LOADING / DEFAULT */
+[data-sonner-toast][data-type="loading"],
+[data-sonner-toast][data-type="normal"] {
+    background: #111827 !important;
+    border: 1px solid #374151 !important;
+    color: #E5E7EB !important;
+}
+
+
+/* Close X button */
+[data-sonner-toast] [data-close-button] {
+    background: #0B0F19 !important;
+    border: 1px solid #374151 !important;
+    color: #E5E7EB !important;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+    background: #1F2937 !important;
+    border-color: #6366F1 !important;
+    color: #ffffff !important;
+}
+
+/* ===== Midnight Navy full-screen theme ===== */
+
+.bg-app,
+.app-shell,
+.main-layout,
+.min-h-screen {
+    background-color: #040A23 !important;
+}
+
+aside,
+.sidebar,
+nav {
+    background-color: #040A23 !important;
+    border-color: #18244A !important;
+}
+
+header,
+.topbar {
+    background-color: #040A23 !important;
+    border-color: #18244A !important;
+}
+
+.card,
+.panel,
+section,
+.table-container,
+.modal-content {
+    background-color: #07102E !important;
+    border-color: #18244A !important;
+    color: #E5E7EB !important;
+}
+
+input,
+select,
+textarea {
+    background-color: #07102E !important;
+    border-color: #18244A !important;
+    color: #E5E7EB !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #9CA3AF !important;
+}
+
+a,
+button,
+svg {
+    transition: all 0.2s ease;
+}
+
+/* sidebar menu items */
+.sidebar a,
+nav a {
+    color: #D1D5DB !important;
+}
+
+/* active / hovered menu */
+.sidebar a:hover,
+nav a:hover,
+.sidebar .active,
+nav .active,
+[aria-current="page"] {
+    background-color: #0B1639 !important;
+    color: #E5E7EB !important;
+}
+
+/* headings */
+h1, h2, h3, h4 {
+    color: #F3F4F6 !important;
+}
+
+/* muted labels */
+.text-muted,
+.text-zinc-400,
+.text-zinc-500 {
+    color: #9CA3AF !important;
+}
